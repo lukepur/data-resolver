@@ -38,15 +38,33 @@ function applyRelativeIndexes() {
   }).join('.');
 }
 
+function normalizePathNotation(path) {
+  if (typeof path === 'string') {
+    return path.replace('$.', '').split('.');
+  }
+  return path;
+}
+
 function resolveString(string, data) {
   var context = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-  var targetPath = arguments[3];
+  var _targetPath = arguments[3];
+
+  // normalize targetPath to array notation
+  var targetPath = normalizePathNotation(_targetPath);
 
   if (string === '$value') {
     if (targetPath) {
       return get(data, targetPath);
     }
     console.warn('$value specified, but no targetPath defined');
+  }
+  // Root data pointer
+  if (string === '$') {
+    return data;
+  }
+  // Special case: escape leading '$' with '$$'
+  if (string.indexOf('$$') > -1) {
+    return string.replace('$$', '$');
   }
   if (string.indexOf('$.') === 0) {
     var pathStr = string;
