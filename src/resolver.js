@@ -66,30 +66,10 @@ function resolveString(string, data, context = {}, _targetPath) {
 }
 
 module.exports = function resolve(resolvable, data, context, targetPath) {
-  if (typeof context[resolvable[resolvableFnProp]] === 'function') {
-    const args = (Array.isArray(resolvable[argsProp]) ? resolvable[argsProp] : []);
-    return context[resolvable[resolvableFnProp]]
-      .apply(null, args.map(arg => resolve(arg, data, context, targetPath)));
+  // Validate resolvable
+
+  switch (resolvable.type) {
+    case 'literal':
+      return resolvable.value;
   }
-  if (resolvable[refFnProp] !== undefined) {
-    const fnRef = context[resolvable[refFnProp]];
-    if (typeof fnRef === 'function') {
-      return context[resolvable[refFnProp]];
-    }
-    const result = resolve(resolvable[refFnProp], data, context, targetPath);
-    return (typeof result === 'function' ? result : null);
-  }
-  if (typeof resolvable === 'string') {
-    return resolveString(resolvable, data, context, targetPath);
-  }
-  if (Array.isArray(resolvable)) {
-    return resolvable.map(item => resolve(item, data, context, targetPath));
-  }
-  if (typeof resolvable === 'object') {
-    return transform(resolvable, (memo, value, prop) => {
-      memo[prop] = resolve(value, data, context, targetPath);
-      return memo;
-    }, {});
-  }
-  return resolvable;
 }
