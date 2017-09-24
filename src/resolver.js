@@ -80,6 +80,8 @@ function validateResolvable (resolvable) {
   if (resolvableType === 'object') {
     const type = resolvable.type;
     const value = resolvable.value;
+    const args = resolvable.args;
+
     if (!type) {
       throw new TypeError(`Cannot resolve an object which does not have a "type" property. Please see documentation for correct resolvable format`);
     }
@@ -93,8 +95,16 @@ function validateResolvable (resolvable) {
       throw new TypeError(`Cannot resolve an object with a non-string value when type is lookup. Please see documentation for correct resolvable format`);
     }
 
-    if (type === 'fn' && valueType !== 'string') {
-      throw new TypeError(`Cannot resolve an object with a non-string value when type is fn. Please see documentation for correct resolvable format`);
+    if (type === 'fn')
+      if (valueType !== 'string') {
+        throw new TypeError(`Cannot resolve an object with a non-string value when type is fn. Please see documentation for correct resolvable format`);
+      }
+      
+      if (args) {
+        if (!Array.isArray(args)) {
+          throw new TypeError(`Cannot resolve an object with a non-string value when type is fn. Please see documentation for correct resolvable format`);
+        }
+      }
     }
 
     if (type === 'fnRefLookup' && valueType !== 'string') {

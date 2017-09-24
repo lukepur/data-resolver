@@ -50,6 +50,10 @@ describe('resolver', () => {
       expect(() => resolver({ type: 'fn', value: {} }, {}, context, [])).to.throw(TypeError, 'Cannot resolve an object with a non-string value when type is fn. Please see documentation for correct resolvable format');
     });
 
+    it('should fail validation for an object when value is not string if type is fn', () => {
+      expect(() => resolver({ type: 'fn', value: {} }, {}, context, [])).to.throw(TypeError, 'Cannot resolve an object with a non-string value when type is fn. Please see documentation for correct resolvable format');
+    });
+
     it('should fail validation for an object when value is not string if type is fnRefLookup', () => {
       expect(() => resolver({ type: 'fnRefLookup', value: {} }, {}, context, [])).to.throw(TypeError, 'Cannot resolve an object with a non-string value when type is fnRefLookup. Please see documentation for correct resolvable format');
     });
