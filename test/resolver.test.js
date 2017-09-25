@@ -13,99 +13,99 @@ describe('resolver', () => {
     expect(resolver).to.be.a('function');
   });
 
-  describe('resolve type: literal', () => {
+  describe('resolve resolvableType: literal', () => {
     it('should resolve to the literal value for a string', () => {
-      expect(resolver({ type: 'literal', value: 'a string'})).to.eql('a string');
+      expect(resolver({ resolvableType: 'literal', value: 'a string'})).to.eql('a string');
     });
 
     it('should resolve to the literal value for a number', () => {
-      expect(resolver({ type: 'literal', value: 1})).to.eql(1);
+      expect(resolver({ resolvableType: 'literal', value: 1})).to.eql(1);
     });
 
     it('should resolve to the literal value for a boolean', () => {
-      expect(resolver({ type: 'literal', value: true})).to.eql(true);
-      expect(resolver({ type: 'literal', value: false})).to.eql(false);
+      expect(resolver({ resolvableType: 'literal', value: true})).to.eql(true);
+      expect(resolver({ resolvableType: 'literal', value: false})).to.eql(false);
     });
 
     it('should resolve to the literal value for an array', () => {
-      expect(resolver({ type: 'literal', value: [1, 2, 3]})).to.eql([1, 2, 3]);
+      expect(resolver({ resolvableType: 'literal', value: [1, 2, 3]})).to.eql([1, 2, 3]);
     });
 
     it('should resolve to the literal value for an object', () => {
-      expect(resolver({ type: 'literal', value: { a: 'string', b: 1 }})).to.eql({ a: 'string', b: 1});
+      expect(resolver({ resolvableType: 'literal', value: { a: 'string', b: 1 }})).to.eql({ a: 'string', b: 1});
     });
   });
 
-  describe('resolve type: lookup', () => {
+  describe('resolve resolvableType: lookup', () => {
     describe('$', () => {
       it('should return the root data object', () => {
-        expect(resolver({ type: 'lookup', value: '$'}, data, context, [])).to.eql(genTestData());
+        expect(resolver({ resolvableType: 'lookup', value: '$'}, data, context, [])).to.eql(genTestData());
       });
     });
 
     describe('$value', () => {
       it('should return this node\'s value', () => {
-        expect(resolver({ type: 'lookup', value: '$value'}, data, context, ['personal_details', 'name', 'title'])).to.eql('miss');
+        expect(resolver({ resolvableType: 'lookup', value: '$value'}, data, context, ['personal_details', 'name', 'title'])).to.eql('miss');
       });
 
       it('should return this node\'s value when target is path string', () => {
-        expect(resolver({ type: 'lookup', value: '$value'}, data, context, '$.personal_details.name.title')).to.eql('miss');
+        expect(resolver({ resolvableType: 'lookup', value: '$value'}, data, context, '$.personal_details.name.title')).to.eql('miss');
       });
 
       it('should return this node\'s value when in array', () => {
-        const result = resolver({type: 'lookup', value: '$value' }, data, context, ['asset_details', 'assets', '0', 'value']);
+        const result = resolver({resolvableType: 'lookup', value: '$value' }, data, context, ['asset_details', 'assets', '0', 'value']);
         expect(result).to.eql(1000);
       });
     });
 
     describe('specific pointers', () => {
       it('should return value of node at specific reference', () => {
-        const result = resolver({type: 'lookup', value: '$.personal_details.name.title' }, data, context, []);
+        const result = resolver({resolvableType: 'lookup', value: '$.personal_details.name.title' }, data, context, []);
         expect(result).to.eql('miss');
       });
 
       it('should return value of node at specific reference when in array', () => {
-        const result = resolver({type: 'lookup', value: '$.asset_details.assets.0.value' }, data, context, []);
+        const result = resolver({resolvableType: 'lookup', value: '$.asset_details.assets.0.value' }, data, context, []);
         expect(result).to.eql(1000);
       });
     });
 
     describe('wildcard (*) pointers', () => {
       it('should return an array of values when array wildcard `*` is used', () => {
-        const result = resolver({ type: 'lookup', value:'$.asset_details.assets.*.value' }, data, context, ['personal_details', 'name', 'last']);
+        const result = resolver({ resolvableType: 'lookup', value:'$.asset_details.assets.*.value' }, data, context, ['personal_details', 'name', 'last']);
         expect(result).to.eql([1000, 1000000]);
       });
 
       it('should return an array of values when array wildcard `*` is used multiple times', () => {
-        const result = resolver({ type: 'lookup', value: '$.asset_details.assets.*.depreciations.*' }, data, context, ['personal_details', 'name', 'last']);
+        const result = resolver({ resolvableType: 'lookup', value: '$.asset_details.assets.*.depreciations.*' }, data, context, ['personal_details', 'name', 'last']);
         expect(result).to.eql([100, 90, 81, -30000, -50000, -100000]);
       });
     });
 
     describe('index matching (^) pointers', () => {
       it('should target this node\'s ancestor when ^ is used', () => {
-        const result = resolver({ type: 'lookup', value: '$.asset_details.assets.^.description' }, data, context, ['asset_details', 'assets', '0', 'value']);
+        const result = resolver({ resolvableType: 'lookup', value: '$.asset_details.assets.^.description' }, data, context, ['asset_details', 'assets', '0', 'value']);
         expect(result).to.eql('Robot');
       });
 
       it('should target correct ancestor paths when multiple ^ are used', () => {
-        const result = resolver({ type: 'lookup', value: '$.previous_applications.items.^.comments.^.message' }, data, context, ['previous_applications', 'items', '0', 'comments', '1', 'author']);
+        const result = resolver({ resolvableType: 'lookup', value: '$.previous_applications.items.^.comments.^.message' }, data, context, ['previous_applications', 'items', '0', 'comments', '1', 'author']);
         expect(result).to.eql('Good spot Bob, bad application');
       });
     });
 
     describe('mixed pointers', () => {
       it('should target correct data when a mix of relative and wildcard markers are used', () => {
-        const result = resolver({type: 'lookup', value: '$.previous_applications.items.^.comments.*.author' }, data, context, ['previous_applications', 'items', '0', 'comments', '0', 'message']);
+        const result = resolver({resolvableType: 'lookup', value: '$.previous_applications.items.^.comments.*.author' }, data, context, ['previous_applications', 'items', '0', 'comments', '0', 'message']);
         expect(result).to.eql(['Bob', 'Jane']);
       });
     });
   });
 
-  describe('resolve type: fn', () => {
+  describe('resolve resolvableType: fn', () => {
    it('should return the result of running a function', () => {
       const resolvable = {
-        type: 'fn',
+        resolvableType: 'fn',
         value: 'noArgFunc'
       };
       const result = resolver(resolvable, data, context, []);
@@ -114,9 +114,9 @@ describe('resolver', () => {
 
     it('should return the result of running a function over the value of a data pointer', () => {
       const resolvable = {
-        type: 'fn',
+        resolvableType: 'fn',
         value: 'oneArgFunc',
-        args: [ { type: 'lookup', value: '$.personal_details.name.title' } ]
+        args: [ { resolvableType: 'lookup', value: '$.personal_details.name.title' } ]
       };
       const result = resolver(resolvable, data, context, []);
       expect(result).to.eql('arg: miss');
@@ -124,11 +124,11 @@ describe('resolver', () => {
 
     it('should resolve nested resolvables', () => {
       const resolvable = {
-        type: 'fn',
+        resolvableType: 'fn',
         value: 'oneArgFunc',
         args: [
           {
-            type: 'fn',
+            resolvableType: 'fn',
             value: 'noArgFunc'
           }
         ]
@@ -138,10 +138,10 @@ describe('resolver', () => {
     }); 
   });
 
-  describe('resolve type: fnRefLookup', () => {
+  describe('resolve resolvableType: fnRefLookup', () => {
     it('should return a reference to the named context function', () => {
       const resolvable = {
-        type: 'fnRefLookup',
+        resolvableType: 'fnRefLookup',
         value: 'oneArgFunc'
       };
       const result = resolver(resolvable, data, context, []);
@@ -150,7 +150,7 @@ describe('resolver', () => {
 
     it('should return null if fnRef cannot be found in the context', () => {
       const resolvable = {
-        type: 'fnRefLookup',
+        resolvableType: 'fnRefLookup',
         value: 'nonExistent'
       };
       const result = resolver(resolvable, data, context, []);
@@ -158,14 +158,14 @@ describe('resolver', () => {
     });
   });
 
-  describe('resolve type: fnRefResolve', () => {
+  describe('resolve resolvableType: fnRefResolve', () => {
     it('should return a reference to a function returned by resolving a resolvable', () => {
       const resolvable = {
-        type: 'fnRefResolve',
+        resolvableType: 'fnRefResolve',
         value: {
-          type: 'fn',
+          resolvableType: 'fn',
           value: 'funcFactory',
-          args: [ { type: 'lookup', value: 'my fnRef' } ]
+          args: [ { resolvableType: 'lookup', value: 'my fnRef' } ]
         }
       };
       const result = resolver(resolvable, data, context, []);
@@ -174,11 +174,11 @@ describe('resolver', () => {
 
     it('should return null if the fnRef returned by a resolvable is not a function', () => {
       const resolvable = {
-        type: 'fnRefResolve',
+        resolvableType: 'fnRefResolve',
         value: {
-          type: 'fn',
+          resolvableType: 'fn',
           value: 'oneArgFunc',
-          args: [ {type: 'lookup', value: 'my fnRef' } ]
+          args: [ {resolvableType: 'lookup', value: 'my fnRef' } ]
         }
       };
       const result = resolver(resolvable, data, context, []);
@@ -193,9 +193,9 @@ describe('resolver', () => {
 
     it('should return an array with all items resolved when all members are valid resolvables', () => {
       const resolvable = [
-        { type: 'literal', value: 1 },
-        { type: 'lookup', value: '$' },
-        { type: 'lookup', value: '$value' }
+        { resolvableType: 'literal', value: 1 },
+        { resolvableType: 'lookup', value: '$' },
+        { resolvableType: 'lookup', value: '$value' }
       ];
       const result = resolver(resolvable, data, context, '$.personal_details.name.title');
       expect(result).to.eql([1, genTestData(), 'miss']);
@@ -203,13 +203,40 @@ describe('resolver', () => {
 
     it('should return an array with non-resolvables alongside resolved values when members are a mix of resolvable and non-resolvable', () => {
       const resolvable = [
-        { type: 'literal', value: 1 },
+        { resolvableType: 'literal', value: 1 },
         'a string',
-        { type: 'lookup', value: '$' },
-        { type: 'lookup', value: '$value' }
+        { resolvableType: 'lookup', value: '$' },
+        { resolvableType: 'lookup', value: '$value' }
       ];
       const result = resolver(resolvable, data, context, '$.personal_details.name.title');
       expect(result).to.eql([1, 'a string', genTestData(), 'miss']);
+    });
+  });
+
+  describe('Resolve object members', () => {
+    it('should return an empty object for resolving an empty object', () => {
+      expect(resolver({}, data, context, [])).to.eql({});
+    });
+
+    it('should return an object with all members resolved when all members are valid resolvables', () => {
+      const resolvable = {
+        a: { resolvableType: 'literal', value: 1 },
+        b: { resolvableType: 'lookup', value: '$' },
+        c: { resolvableType: 'lookup', value: '$value' }
+      };
+      const result = resolver(resolvable, data, context, '$.personal_details.name.title');
+      expect(result).to.eql({a: 1, b: genTestData(), c: 'miss'});
+    });
+
+    it('should return an object with all resolvable members resolved when some members are valid resolvables', () => {
+      const resolvable = {
+        a: { resolvableType: 'literal', value: 1 },
+        b: 'a string',
+        c: { resolvableType: 'lookup', value: '$' },
+        d: { resolvableType: 'lookup', value: '$value' }
+      };
+      const result = resolver(resolvable, data, context, '$.personal_details.name.title');
+      expect(result).to.eql({a: 1, b: 'a string', c: genTestData(), d: 'miss'});
     });
   });
 });
