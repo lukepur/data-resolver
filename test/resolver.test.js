@@ -13,60 +13,6 @@ describe('resolver', () => {
     expect(resolver).to.be.a('function');
   });
 
-  describe('resolvable validation', () => {
-    it('should fail validation for null', () => {
-      expect(() => resolver(null, {}, context, [])).to.throw(TypeError, 'Cannot resolve a null value. Please see documentation for correct resolvable format');
-    });
-
-    it('should fail validation for undefined', () => {
-      expect(() => resolver(undefined, {}, context, [])).to.throw(TypeError, 'Cannot resolve an undefined value. Please see documentation for correct resolvable format');
-    });
-
-    it('should fail validation for string', () => {
-      expect(() => resolver('string', {}, context, [])).to.throw(TypeError, 'Cannot resolve a value of type "string". Please see documentation for correct resolvable format');
-    });
-    
-    it('should fail validation for number', () => {
-      expect(() => resolver(1, {}, context, [])).to.throw(TypeError, 'Cannot resolve a value of type "number". Please see documentation for correct resolvable format');
-    });
-
-    it('should fail validation for bool', () => {
-      expect(() => resolver(true, {}, context, [])).to.throw(TypeError, 'Cannot resolve a value of type "boolean". Please see documentation for correct resolvable format');
-    });
-
-    it('should fail validation for an object with no "type" property', () => {
-      expect(() => resolver({ a: 'something' }, {}, context, [])).to.throw(TypeError, 'Cannot resolve an object which does not have a "type" property. Please see documentation for correct resolvable format');
-    });
-
-    it('should fail validation for an object with no "value" property', () => {
-      expect(() => resolver({ type: 'literal' }, {}, context, [])).to.throw(TypeError, 'Cannot resolve an object which does not have a "value" property. Please see documentation for correct resolvable format');
-    });
-
-    it('should fail validation for an object when value is not string if type is lookup', () => {
-      expect(() => resolver({ type: 'lookup', value: {} }, {}, context, [])).to.throw(TypeError, 'Cannot resolve an object with a non-string value when type is lookup. Please see documentation for correct resolvable format');
-    });
-
-    it('should fail validation for an object when value is not string if type is fn', () => {
-      expect(() => resolver({ type: 'fn', value: {} }, {}, context, [])).to.throw(TypeError, 'Cannot resolve an object with a non-string value when type is fn. Please see documentation for correct resolvable format');
-    });
-
-    it('should fail validation for an object when value is not string if type is fn', () => {
-      expect(() => resolver({ type: 'fn', value: {} }, {}, context, [])).to.throw(TypeError, 'Cannot resolve an object with a non-string value when type is fn. Please see documentation for correct resolvable format');
-    });
-
-    it('should fail validation for an object when value is not string if type is fnRefLookup', () => {
-      expect(() => resolver({ type: 'fnRefLookup', value: {} }, {}, context, [])).to.throw(TypeError, 'Cannot resolve an object with a non-string value when type is fnRefLookup. Please see documentation for correct resolvable format');
-    });
-
-    it('should fail validation for an object when value is not resolvable if type is fnRefResolve', () => {
-      expect(() => resolver({ type: 'fnRefResolve', value: {} }, {}, context, [])).to.throw(TypeError, 'Cannot resolve an object with a non-resolvable value when type is fnRefResolve. Please see documentation for correct resolvable format');
-    });
-
-    it('should fail validation for an array if at least one of the members is not a valid resolvable', () => {
-      expect(() => resolver(['a string'], {}, context, [])).to.throw(TypeError, 'Cannot resolve an array if any of the members are not resolvable. Please see documentation for correct resolvable format');
-    });
-  });
-
   describe('resolve type: literal', () => {
     it('should resolve to the literal value for a string', () => {
       expect(resolver({ type: 'literal', value: 'a string'})).to.eql('a string');
@@ -255,7 +201,7 @@ describe('resolver', () => {
       expect(result).to.eql([1, genTestData(), 'miss']);
     });
 
-    xit('should return an array with non-resolvables alongside resolved values when members are a mix of resolvable and non-resolvable', () => {
+    it('should return an array with non-resolvables alongside resolved values when members are a mix of resolvable and non-resolvable', () => {
       const resolvable = [
         { type: 'literal', value: 1 },
         'a string',

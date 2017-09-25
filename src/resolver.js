@@ -65,77 +65,7 @@ function resolveString(string, data, context = {}, _targetPath) {
   return null;
 }
 
-function validateResolvable (resolvable) {
-  // null/undefined
-  if (resolvable === null) throw new TypeError('Cannot resolve a null value. Please see documentation for correct resolvable format');
-  if (resolvable === undefined) throw new TypeError('Cannot resolve an undefined value. Please see documentation for correct resolvable format');
-
-  // string, number and boolean cannot be directly resolved
-  const INVALID_TYPES = ['string', 'number', 'boolean'];
-  const resolvableType = typeof resolvable;
-  if (INVALID_TYPES.indexOf(resolvableType) > -1) {
-    throw new TypeError(`Cannot resolve a value of type "${resolvableType}". Please see documentation for correct resolvable format`);
-  }
-
-  // array validation
-  if (Array.isArray(resolvable)) {
-    if (resolvable.length === 0) return // empty arrays allowed
-    try {
-      resolvable.forEach(item => validateResolvable(item));
-    } catch (e) {
-      throw new TypeError(`Cannot resolve an array if any of the members are not resolvable. Please see documentation for correct resolvable format`);
-    }
-    return;
-  }
-
-  if (resolvableType === 'object') {
-    const type = resolvable.type;
-    const value = resolvable.value;
-    const args = resolvable.args;
-
-    if (!type) {
-      throw new TypeError(`Cannot resolve an object which does not have a "type" property. Please see documentation for correct resolvable format`);
-    }
-    
-    if (value === undefined || value === null) {
-      throw new TypeError(`Cannot resolve an object which does not have a "value" property. Please see documentation for correct resolvable format`);
-    }
-
-    const valueType = typeof resolvable.value;
-    if (type === 'lookup' && valueType !== 'string') {
-      throw new TypeError(`Cannot resolve an object with a non-string value when type is lookup. Please see documentation for correct resolvable format`);
-    }
-
-    if (type === 'fn') {
-      if (valueType !== 'string') {
-        throw new TypeError(`Cannot resolve an object with a non-string value when type is fn. Please see documentation for correct resolvable format`);
-      }
-      
-      if (args) {
-        if (!Array.isArray(args)) {
-          throw new TypeError(`Cannot resolve an object with a non-string value when type is fn. Please see documentation for correct resolvable format`);
-        }
-      }
-    }
-
-    if (type === 'fnRefLookup' && valueType !== 'string') {
-      throw new TypeError(`Cannot resolve an object with a non-string value when type is fnRefLookup. Please see documentation for correct resolvable format`);
-    }
-
-    if (type === 'fnRefResolve') {
-      try {
-        validateResolvable(value);
-      } catch (e) {
-        throw new TypeError(`Cannot resolve an object with a non-resolvable value when type is fnRefResolve. Please see documentation for correct resolvable format`);
-      }
-    }
-  }
-}
-
 module.exports = function resolve(resolvable, data, context, targetPath) {
-  // Validate resolvable
-  validateResolvable(resolvable);
-
   switch (resolvable.type) {
     case 'literal':
       return resolvable.value;
