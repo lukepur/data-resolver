@@ -4,8 +4,8 @@ const { get, transform, isEqual } = require('lodash');
 
 const { getDataPathsForRefPath } = require('./util/path-utils');
 
-const resolvableFnProp = 'fn';
-const refFnProp = 'fnRef';
+const resolvableFnProp = 'value';
+const refFnProp = 'value';
 const argsProp = 'args';
 
 function collectArrayValues(pathStr, data) {
@@ -62,7 +62,7 @@ function resolveString(string, data, context = {}, _targetPath) {
     }
     return get(data, pathStr.replace('$.', ''));
   }
-  return string;
+  return null;
 }
 
 function validateResolvable (resolvable) {
@@ -75,6 +75,17 @@ function validateResolvable (resolvable) {
   const resolvableType = typeof resolvable;
   if (INVALID_TYPES.indexOf(resolvableType) > -1) {
     throw new TypeError(`Cannot resolve a value of type "${resolvableType}". Please see documentation for correct resolvable format`);
+  }
+
+  // array validation
+  if (Array.isArray(resolvable)) {
+    if (resolvable.length === 0) return // empty arrays allowed
+    try {
+      resolvable.forEach(item => validateResolvable(item));
+    } catch (e) {
+      throw new TypeError(`Cannot resolve an array if any of the members are not resolvable. Please see documentation for correct resolvable format`);
+    }
+    return;
   }
 
   if (resolvableType === 'object') {
@@ -128,7 +139,29 @@ module.exports = function resolve(resolvable, data, context, targetPath) {
   switch (resolvable.type) {
     case 'literal':
       return resolvable.value;
+    case 'lookup':
+      return resolveString(resolvable.value, data, context, targetPath);
+    case 'fn':
+      const args = (Array.isArray(resolvable[argsProp]) ? resolvable[argsProp] : []);
+      return context[resolvable[resolvableFnProp]]
+        .apply(null, args.map(arg => resolve(arg, data, context, targetPath)));
+    case 'fnRefLookup':
+      const fnRef = context[resolvable[refFnProp]];
+      if (typeof fnRef === 'function') {
+        return context[resolvable[refFnProp]];
+      }
+      return null;
+    case 'fnRefResolve':
+      // Resolve the value and check if it is a function
+      const result = resolve(resolvable[resolvableFnProp], data, context, targetPath);
+      return (typeof result === 'function' ? result : null);
   }
+
+  if (Array.isArray(resolvable)) {
+    return resolvable.map(item => resolve(item, data, context, targetPath));
+  }
+
+  return resolvable;
   // validateResolvable will throw a TypeError if resolvable is invalid
 
   // if (typeof context[resolvable[resolvableFnProp]] === 'function') {
