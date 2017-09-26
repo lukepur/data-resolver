@@ -100,6 +100,12 @@ describe('resolver', () => {
         expect(result).to.eql(['Bob', 'Jane']);
       });
     });
+
+    describe('invalid pointers', () => {
+      it('should throw an error if a lookup value is invalid', () => {
+        expect(() => resolver({ resolvableType: 'lookup', value: '$$' })).to.throw(TypeError, 'Unresolvable lookup value: $$');
+      });
+    });
   });
 
   describe('resolve resolvableType: fn', () => {
@@ -165,14 +171,14 @@ describe('resolver', () => {
         value: {
           resolvableType: 'fn',
           value: 'funcFactory',
-          args: [ { resolvableType: 'lookup', value: 'my fnRef' } ]
+          args: [ { resolvableType: 'literal', value: 'argToFuncFactory' } ]
         }
       };
       const result = resolver(resolvable, data, context, []);
       expect(result).to.be.a('function');
     });
 
-    it('should return null if the fnRef returned by a resolvable is not a function', () => {
+    it('should throw an err if resolvable contains a nested invalid lookup', () => {
       const resolvable = {
         resolvableType: 'fnRefResolve',
         value: {
@@ -181,8 +187,7 @@ describe('resolver', () => {
           args: [ {resolvableType: 'lookup', value: 'my fnRef' } ]
         }
       };
-      const result = resolver(resolvable, data, context, []);
-      expect(result).to.be.null;
+      expect(() => resolver(resolvable, data, context, [])).to.throw(TypeError, 'Unresolvable lookup value: my fnRef');
     });
   });
 
@@ -245,7 +250,7 @@ function genTestContext() {
   return {
     noArgFunc: function () { return 'noArgFunc'; },
     oneArgFunc: function (arg1) { return 'arg: ' + arg1; },
-    funcFactory: function(arg1) { return function() { return 'factory for: ' + arg1;}}
+    funcFactory: function(arg1) { return function() { return 'factory for: ' + arg1; }}
   };
 }
 
@@ -260,8 +265,8 @@ function genTestData() {
     },
     asset_details: {
       assets: [
-        { value: 1000, description: 'Robot', depreciations: [100, 90, 81]},
-        { value: 1000000, description: 'Part ownership of studio apartment in London', depreciations: [-30000, -50000, -100000]}
+        { value: 1000, description: 'Robot', depreciations: [100, 90, 81] },
+        { value: 1000000, description: 'Part ownership of studio apartment in London', depreciations: [-30000, -50000, -100000] }
       ]
     },
     previous_applications: {
