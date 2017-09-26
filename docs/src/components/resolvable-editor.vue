@@ -82,7 +82,7 @@ export default {
     },
 
     showArgs () {
-      return this.isFnType && this.currentlyEditingNode.value;
+      return this.currentlyEditingNode.resolvableType === 'fn' && this.currentlyEditingNode.value;
     },
 
     isFnType () {
