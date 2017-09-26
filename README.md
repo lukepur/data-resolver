@@ -67,9 +67,9 @@ A 'resolvable' has the following structure:
 
 ```
 {
-  resolvableType: 'literal' | 'lookup' | 'fn' | 'fnRefLookup' | 'fnRefResolve',
+  resolvableType: 'literal' | 'lookup' | 'fn' | 'fnRefLookup',
   value: Any (althoug constraints apply depending on the 'resolvableType'),
-  args: Array (array of values or resolvables. Only applicable for 'fn' and 'fnRefResolve' resolvableTypes)
+  args: Array (array of values or resolvables. Only applicable for 'fn' resolvableType)
 }
 ```
 
@@ -81,7 +81,6 @@ How each 'resolvableType' is resolved is described below.
 `lookup` | The value provided in the `value` property of the resolvable is used to extract specific data from the data context. It must be a string. See [Lookup Rules](#lookup-rules) for more details.
 `fn` | The value provided in the `value` property of the resolvable must be a string that points to the member name of a function in the [`context`](#resolve-function-parameters). The optional `args` array is used to specify the arguments which are passed to the target `fn` at resolve time. Each `arg` item can be a literal or a resolvable. See [fn resolvables](#fn-resolvables) for more information.
 `fnRefLookup` | The value provided in the `value` property of the resolvable must be a string that points to the member name of a function in the [`context`](#resolve-function-parameters). Unlike `fn`, the function is not invoked with `args`, but rather returns a reference to the function. This is useful, for example, to indicate an iteratee for a map `fn`. See [fnRef resolvables](#fnref-resolvables) for more information.
-`fnRefResolve` | The value provided in the `value` property of the resolvable must be a resolvable which resolves to a function. A reference to that function will be returned. This is useful, for example, when a fnRef is required to be generated from a runtime invoked factory. See [fnRef resolvables](#fnref-resolvables) for more information.
 
 ### Lookup Rules
 The string provided as the `value` property for a lookup resolvable is used to extract specific data from the complete data context. This mechanism can target specific properties (of any type) as well as use relative references to target data related to a specific subset. Furthermore, wildcard selection allows collecting related data from across multiple entities. The special characters used to define a path are detailed below. The result column is what would be returned if the [Example Data Structure](#example-data-structure) was used as the data context for the example usages.
@@ -94,7 +93,7 @@ The string provided as the `value` property for a lookup resolvable is used to e
 | `^` | Relative path indicator. Used in conjunction with the `targetPath` to refer to sibling data. | `$.movies.^.year` assuming the target path is `['movies', 1, 'name']` | `2000` |
 
 ### fn resolvables
-`fn` resolvables provide a mechanism for invoking functions over specific data to compute the resolved value. Used in conjuction with `lookup`s and `fnRef`s, this provides a powerful way to transform data in arbitrarily complex ways.
+`fn` resolvables provide a mechanism for invoking functions over specific data to compute the resolved value. Used in conjuction with `lookup`s and `fnRef`s, this provides a powerful way to transform data in arbitrarily complex ways. Note that if an `fn` resolvable returns a function (e.g. it is a function factory) then it is a function reference rather than a value. This allows function factories to be used to, for example, build custom iteratees for collection maps.
 
 #### fn examples
 The examples below relate to the [example data and context](#example-data-structure).
@@ -144,8 +143,8 @@ The examples below relate to the [example data and context](#example-data-struct
   </tbody>
 </table>
 
-### fnRef resolvables
-`fnRefLookup` and `fnRefResolvable` resolvables provide a mechanism for obtaining a reference to a function in the `context`. This is generally useful for providing collection iteratees to collection `fn`s. `fnRefLookup` simply returns a reference to a function by name in the `context`. `fnRefResolvable` allows more complex resolution of the function reference, for example by getting the result of running a function factory using `fn`.
+### fnRefLookup resolvables
+`fnRefLookup` resolvables provide a mechanism for obtaining a reference to a function in the `context`. This is generally useful for providing collection iteratees to collection `fn`s. `fnRefLookup` simply returns a reference to a function by name in the `context`.
 
 #### fnRef examples
 The examples below relate to the [example data and context](#example-data-structure).
@@ -178,7 +177,7 @@ The examples below relate to the [example data and context](#example-data-struct
               value: '$.movies.*
             },
             {
-              resolvableType: 'fnRefResolve',
+              resolvableType: 'fn',
               value: 'propLessThanFactory',
               args: [2000, 'year']
             }

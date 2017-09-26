@@ -164,15 +164,12 @@ describe('resolver', () => {
     });
   });
 
-  describe('resolve resolvableType: fnRefResolve', () => {
+  describe('resolve resolvableType: fn as function reference', () => {
     it('should return a reference to a function returned by resolving a resolvable', () => {
       const resolvable = {
-        resolvableType: 'fnRefResolve',
-        value: {
-          resolvableType: 'fn',
-          value: 'funcFactory',
-          args: [ { resolvableType: 'literal', value: 'argToFuncFactory' } ]
-        }
+        resolvableType: 'fn',
+        value: 'funcFactory',
+        args: [ { resolvableType: 'literal', value: 'argToFuncFactory' } ]
       };
       const result = resolver(resolvable, data, context, []);
       expect(result).to.be.a('function');
@@ -180,12 +177,9 @@ describe('resolver', () => {
 
     it('should throw an err if resolvable contains a nested invalid lookup', () => {
       const resolvable = {
-        resolvableType: 'fnRefResolve',
-        value: {
-          resolvableType: 'fn',
-          value: 'oneArgFunc',
-          args: [ {resolvableType: 'lookup', value: 'my fnRef' } ]
-        }
+        resolvableType: 'fn',
+        value: 'oneArgFunc',
+        args: [ {resolvableType: 'lookup', value: 'my fnRef' } ]
       };
       expect(() => resolver(resolvable, data, context, [])).to.throw(TypeError, 'Unresolvable lookup value: my fnRef');
     });

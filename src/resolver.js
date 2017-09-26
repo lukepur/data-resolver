@@ -77,10 +77,6 @@ module.exports = function resolve(resolvable, data, context, targetPath) {
         return context[resolvable[refFnProp]];
       }
       return null;
-    case 'fnRefResolve':
-      // Resolve the value and check if it is a function
-      const result = resolve(resolvable[resolvableFnProp], data, context, targetPath);
-      return (typeof result === 'function' ? result : null);
   }
 
   if (Array.isArray(resolvable)) {
