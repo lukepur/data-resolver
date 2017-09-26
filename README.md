@@ -1,6 +1,11 @@
 # data-resolver
 A small module for resolving values, paths (relative and absolute) and arbitrarily complex functions across a data structure and computation context.
 
+## Why
+On first inspection, the resolvable concept may seem overly verbose and more complicated than simply programmatically achieving the same outcomes. However the motivation is that once a solid library of context functions is created, then advanced tooling could be used to build arbitrarily complex data transformations or queries at runtime (and without code modifications).
+
+This could further be enhanced to build a user system that manages such transformations and queries against a large data store to provide fast, dynamic solutions to fluid business questions.
+
 ## Installation
 ```
 npm i -S data-resolver
@@ -15,16 +20,17 @@ const resolve = require('data-resolver');
 let resolved = resolve(resolvable, data, context, targetPath);
 ```
 
+### Resolve function parameters
 The parameters are as follows:
 
 | Param | Description |
-|-|-|
-| `resolvable` | The desription of how to resolve this value. See the [resolvable section](#resolvable) for details |
+|---|---|
+| `resolvable` | The description of how to resolve this value. See the [resolvable section](#resolvable) for details |
 | `data` | The data context to perform the resolve. This is a plain old javascript object |
-| `context` | The context to perform function lookups for `fn` resolution. This is simply an object with function members |
-| `targetPath` | The path of the data node to use as the reference point for relative resolve paths. Defaults to root of data object |
+| `context` | The context to perform function lookups for `fn` and `fnRefLookup` resolution. This is simply an object with function members |
+| `targetPath` | The path of the data node to use as the reference point for relative resolve paths. Defaults to root of data object. Can be specified as a `.` delimited path, or an array of strings representing the property hierarchy. |
 
-Purely functional:
+Simple example:
 
 ```
 const resolve = require('data-resolver');
@@ -33,27 +39,162 @@ const data = {
   a: 1,
   b: {
     b1: 'b1',
-    b2: [1,2,3]
+    b2: 2
   }
 };
 
 const ctx = {
-  add: (args) => args.reduce((memo, item) => memo + item), 0)
+  add: (a, b) => a + b
 };
 
 let result = resolve({
-  fn: add,
+  resolvableType: 'fn',
+  value: 'add',
   args: [
-    $.a,
-    $.b.b2
+    { resolvableType: 'lookup', value: '$.a' },
+    { resolvableType: 'lookup', value: '$.b.b2' }
   ]
 }, data, ctx);
+
+// result -> 3
 ```
 
 ## Resolvable
-A 'resolvable' is a serializable value (string, object or array) which will be transformed (i.e. resolved) into another value.
+A 'resolvable' is a serializable object with specific properties to describe how to resolve a value at runtime, in the context of a data object and optional relative path.
 
-Consider the following demo data structure:
+### Resolvable structure
+A 'resolvable' has the following structure:
+
+```
+{
+  resolvableType: 'literal' | 'lookup' | 'fn' | 'fnRefLookup' | 'fnRefResolve',
+  value: Any (althoug constraints apply depending on the 'resolvableType'),
+  args: Array (array of values or resolvables. Only applicable for 'fn' and 'fnRefResolve' resolvableTypes)
+}
+```
+
+### resolvableType
+How each 'resolvableType' is resolved is described below.
+| resolvableType | Description |
+|---|---|
+`literal` | The value provided in the `value` property is returned unchanged. This is the same result as would occur if the value was provided instead of a resolvable.
+`lookup` | The value provided in the `value` property of the resolvable is used to extract specific data from the data context. It must be a string. See [Lookup Rules](#lookup-rules) for more details.
+`fn` | The value provided in the `value` property of the resolvable must be a string that points to the member name of a function in the [`context`](#resolve-function-parameters). The optional `args` array is used to specify the arguments which are passed to the target `fn` at resolve time. Each `arg` item can be a literal or a resolvable. See [fn resolvables](#fn-resolvables) for more information.
+`fnRefLookup` | The value provided in the `value` property of the resolvable must be a string that points to the member name of a function in the [`context`](#resolve-function-parameters). Unlike `fn`, the function is not invoked with `args`, but rather returns a reference to the function. This is useful, for example, to indicate an iteratee for a map `fn`. See [fnRef resolvables](#fnref-resolvables) for more information.
+`fnRefResolve` | The value provided in the `value` property of the resolvable must be a resolvable which resolves to a function. A reference to that function will be returned. This is useful, for example, when a fnRef is required to be generated from a runtime invoked factory. See [fnRef resolvables](#fnref-resolvables) for more information.
+
+### Lookup Rules
+The string provided as the `value` property for a lookup resolvable is used to extract specific data from the complete data context. This mechanism can target specific properties (of any type) as well as use relative references to target data related to a specific subset. Furthermore, wildcard selection allows collecting related data from across multiple entities. The special characters used to define a path are detailed below. The result column is what would be returned if the [Example Data Structure](#example-data-structure) was used as the data context for the example usages.
+
+| Character | Description | Example usage | Result |
+|---|---|----|--- |
+| `$` | Root data pointer. Returns the entire data context | `$` | `{ movies: [ ...all movie data ] }` |
+| `.` | Path separator. Used to indicate the path to take through the data context | `$.movies.1.name` | `'Snatch'` |
+| `*` | Wildcard indicator. Used to collect all same-level array values into the resolved value. Can occur multiple times. | `$.movies.*.actors.*` | `['Arnold Schawarzenegger', 'Linda Hamilton', 'Brad Pitt', 'Jason Statham', 'Brad Pitt', 'Christoph Waltz', 'Christian Bale', 'Jared Leto']` |
+| `^` | Relative path indicator. Used in conjunction with the `targetPath` to refer to sibling data. | `$.movies.^.year` assuming the target path is `['movies', 1, 'name']` | `2000` |
+
+### fn resolvables
+`fn` resolvables provide a mechanism for invoking functions over specific data to compute the resolved value. Used in conjuction with `lookup`s and `fnRef`s, this provides a powerful way to transform data in arbitrarily complex ways.
+
+#### fn examples
+The examples below relate to the [example data and context](#example-data-structure).
+
+<table>
+  <thead>
+    <tr>
+      <th>Description</th>
+      <th>Resolvable</th>
+      <th>Result</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Get the set of all actors across all movies</td>
+      <td><pre>{ 
+  resolvableType: 'fn',
+  value: 'uniq',
+  args: [
+    {
+      resolvableType: 'lookup',
+      value: '$.movies.*.actors'
+    }
+  ]
+}</pre></td>
+      <td><code>['Arnold Schawarzenegger', 'Linda Hamilton', 'Jason Statham', 'Brad Pitt', 'Christoph Waltz', 'Christian Bale', 'Jared Leto']</code></td>
+    </tr>
+    <tr>
+      <td>Get the latest movie</td>
+      <td><pre>{ 
+  resolvableType: 'fn',
+  value: 'arrayMax',
+  args: [
+    {
+      resolvableType: 'lookup',
+      value: '$.movies.*.year'
+    }
+  ]
+}</pre></td>
+      <td><pre>{
+  name: 'Inglorious Basterds',
+  year: 2008,
+  directors: 'Quentin Tarantino',
+  actors: ['Brad Pitt', 'Christoph Waltz']
+}</pre></td>
+    </tr>
+  </tbody>
+</table>
+
+### fnRef resolvables
+`fnRefLookup` and `fnRefResolvable` resolvables provide a mechanism for obtaining a reference to a function in the `context`. This is generally useful for providing collection iteratees to collection `fn`s. `fnRefLookup` simply returns a reference to a function by name in the `context`. `fnRefResolvable` allows more complex resolution of the function reference, for example by getting the result of running a function factory using `fn`.
+
+#### fnRef examples
+The examples below relate to the [example data and context](#example-data-structure).
+
+<table>
+  <thead>
+    <tr>
+      <th>Description</th>
+      <th>Resolvable</th>
+      <th>Result</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Get the set of all actors in movies before 2000</td>
+      <td><pre>{ 
+  resolvableType: 'fn',
+  value: 'uniq',
+  args: [
+    {
+      resolvableType: 'fn',
+      value: 'pick',
+      args: [
+        {
+          resolvableType: 'fn',
+          value: 'filter',
+          args: [
+            {
+              resolvableType: 'lookup',
+              value: '$.movies.*
+            },
+            {
+              resolvableType: 'fnRefResolve',
+              value: 'propLessThanFactory',
+              args: [2000, 'year']
+            }
+          ]
+        },
+        'actors'
+      ]
+    }
+  ]
+}</pre></td>
+      <td><code>['Arnold Schawarzenegger', 'Linda Hamilton']</code></td>
+    </tr>
+  </tbody>
+</table>
+
+#### Example data structure
 
 ```
 const dataStructure = {
@@ -86,38 +227,14 @@ const dataStructure = {
 };
 ```
 
-and the following computation context:
+#### Example context
 
 ```
 const ctx = {
-
+  uniq: (array) => { /* array unique implementation */},
+  filter: (array, filterFn) => { /* array filter implementation */},
+  pick: (array, prop) => { /* return array of props */}
+  propLessThanFactory: (target, prop) => item => item[prop] < target,
+  arrayMax: (array) => { /* return max value in array */}
 };
-```
-
-How a value is resolved is determined according to the following rules:
-
-| Type | Condition | How resolved | Example |
-|-|-|-|-|
-| String | Equals '$' | Returns the root data value | `resolve('$$', dataStructure, ctx) --> dataStructure` |
-| String | Equals '$value' | Returns the data value at target path | `resolve('$$value', dataStructure, ctx, '$$.movies[0].name') --> 'The Terminator'` |
-| String | Starts with '$.' | Returns the value at absolute path | `resolve('$$.movies[0].name', dataStructure, ctx) --> 'The Terminator'` |
-| String | Starts with '$.' and contains '*' | Returns the value at absolute path, collecting any array items at wildcard (*) depth | `resolve('$$.movies[*].name', dataStructure, ctx) --> ['The Terminator', 'Snatch', 'Inglorious Basterds', 'American Psycho']`<br>Multiple wildcards:<br> `resolve('$$.movies[*].actors[*], dataStructure, ctx) --> ['Arnold Schwarzenegger', 'Linda Hamilton', 'Brad Pitt', 'Jason Statham', 'Brad Pitt', Christoph Waltz', 'Christian Bale', 'Jared Leto']` |
-
-## Example resolves
-```
-resolve('$', data, ctx) -> data
-
-resolve('$.', data, ctx) -> Invalid path error
-
-resolve('$$', data, ctx) -> "$" (special case if need to resolve literal '$')
-
-resolve('string', data, ctx) -> "string" (strings not starting with "$" or "^" resolve as that string literal)
-
-resolve(1, data, ctx) -> 1 (numbers resolve as numbers)
-
-resolve({fn: name, args: [...]}, data, ctx) -> result of running 'name' over args (args are each recursively resolved as well)
-
-resolve({a: 1, b: '$'}, data, ctx) -> {a: 1, b : data} (i.e. if object does not have fn or fnRef prop, each member of object is recursively resolved)
-
-resolve([1, {fn: name, args: [1, '$.prop']}, 'test', '$']) -> [1, <result of name(1, <val at $.prop>)>, 'test', data] (i.e. each array member is resolved)
 ```

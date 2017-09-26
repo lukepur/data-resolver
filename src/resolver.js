@@ -48,10 +48,6 @@ function resolveString(string, data, context = {}, _targetPath) {
   if (string === '$') {
     return data;
   }
-  // Special case: escape leading '$' with '$$'
-  if (string.indexOf('$$') > -1) {
-    return string.replace('$$', '$');
-  }
   if (string.indexOf('$.') === 0) {
     let pathStr = string;
     if (pathStr.indexOf('^') !== -1) {
@@ -62,7 +58,7 @@ function resolveString(string, data, context = {}, _targetPath) {
     }
     return get(data, pathStr.replace('$.', ''));
   }
-  return null;
+  throw new TypeError(`Unresolvable lookup value: ${string}`);
 }
 
 module.exports = function resolve(resolvable, data, context, targetPath) {
