@@ -12,8 +12,8 @@ var _require = require('lodash'),
 var _require2 = require('./util/path-utils'),
     getDataPathsForRefPath = _require2.getDataPathsForRefPath;
 
-var resolvableFnProp = 'fn';
-var refFnProp = 'fnRef';
+var resolvableFnProp = 'value';
+var refFnProp = 'value';
 var argsProp = 'args';
 
 function collectArrayValues(pathStr, data) {
@@ -62,10 +62,6 @@ function resolveString(string, data) {
   if (string === '$') {
     return data;
   }
-  // Special case: escape leading '$' with '$$'
-  if (string.indexOf('$$') > -1) {
-    return string.replace('$$', '$');
-  }
   if (string.indexOf('$.') === 0) {
     var pathStr = string;
     if (pathStr.indexOf('^') !== -1) {
@@ -76,37 +72,44 @@ function resolveString(string, data) {
     }
     return get(data, pathStr.replace('$.', ''));
   }
-  return string;
+  throw new TypeError('Unresolvable lookup value: ' + string);
 }
 
 module.exports = function resolve(resolvable, data, context, targetPath) {
-  if (typeof context[resolvable[resolvableFnProp]] === 'function') {
-    var args = Array.isArray(resolvable[argsProp]) ? resolvable[argsProp] : [];
-    return context[resolvable[resolvableFnProp]].apply(null, args.map(function (arg) {
-      return resolve(arg, data, context, targetPath);
-    }));
+  switch (resolvable.resolvableType) {
+    case 'literal':
+      return resolvable.value;
+    case 'lookup':
+      return resolveString(resolvable.value, data, context, targetPath);
+    case 'fn':
+      var args = Array.isArray(resolvable[argsProp]) ? resolvable[argsProp] : [];
+      return context[resolvable[resolvableFnProp]].apply(null, args.map(function (arg) {
+        return resolve(arg, data, context, targetPath);
+      }));
+    case 'fnRefLookup':
+      var fnRef = context[resolvable[refFnProp]];
+      if (typeof fnRef === 'function') {
+        return context[resolvable[refFnProp]];
+      }
+      return null;
+    case 'fnRefResolve':
+      // Resolve the value and check if it is a function
+      var result = resolve(resolvable[resolvableFnProp], data, context, targetPath);
+      return typeof result === 'function' ? result : null;
   }
-  if (resolvable[refFnProp] !== undefined) {
-    var fnRef = context[resolvable[refFnProp]];
-    if (typeof fnRef === 'function') {
-      return context[resolvable[refFnProp]];
-    }
-    var result = resolve(resolvable[refFnProp], data, context, targetPath);
-    return typeof result === 'function' ? result : null;
-  }
-  if (typeof resolvable === 'string') {
-    return resolveString(resolvable, data, context, targetPath);
-  }
+
   if (Array.isArray(resolvable)) {
     return resolvable.map(function (item) {
       return resolve(item, data, context, targetPath);
     });
   }
+
   if ((typeof resolvable === 'undefined' ? 'undefined' : _typeof(resolvable)) === 'object') {
     return transform(resolvable, function (memo, value, prop) {
       memo[prop] = resolve(value, data, context, targetPath);
       return memo;
     }, {});
   }
+
   return resolvable;
 };

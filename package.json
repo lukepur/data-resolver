@@ -1,6 +1,6 @@
 {
   "name": "data-resolver",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "A data transformation resolver",
   "main": "dist/resolver.js",
   "repository": {
