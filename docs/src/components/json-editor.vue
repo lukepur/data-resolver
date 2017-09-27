@@ -1,13 +1,13 @@
 <template>
   <div>
-    <el-form label-width="120px">
+    <el-form label-width="170px">
       <el-form-item label="JSON">
         <el-input type="textarea" v-model="localJson" />
       </el-form-item>
+      <el-form-item>
+        <el-button @click="attemptJsonLoad">Load</el-button>
+      </el-form-item>
     </el-form>
-    <div>
-      <el-button @click="attemptJsonLoad">Load</el-button>
-    </div>
   </div>
 </template>
 
