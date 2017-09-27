@@ -28,6 +28,7 @@ module.exports = {
     'comma-dangle': 0,
     'space-before-function-paren': 0,
     'no-use-before-define': 0,
+    "no-param-reassign": 0,
     // don't require .vue extension when importing
     'import/extensions': ['error', 'always', {
       'js': 'never',

@@ -7,9 +7,9 @@
     <json-editor :onLoadSuccess="onJsonLoadSuccess" />
   </div>
   
-  <h3 class="section-title">Edit Resolvable</h3>
+  <h3 class="section-title">Edit Resolvable <el-button type="text" @click="()=>{showLoadDialog = true}">Load Resolvable</el-button></h3>
   <div>
-    <resolvable-editor :context="context" :onSave="onResolvableSave"/>
+    <resolvable-editor :context="context" :onApply="onResolvableLoad" :onSave="onResolvableSave" :resolvable="resolvable" />
   </div>
 
   <h3 class="section-title">Target Path</h3>
@@ -27,12 +27,26 @@
     <h3 class="section-title">Result</h3>
     <pre class="result-panel">{{ JSON.stringify(result, null, 2) }}</pre>
   </div>
+
+  <!-- Dialogs -->
+  <el-dialog title="Load Resolvable" :visible.sync="showLoadDialog">
+    <el-select v-model="loadSelectId">
+      <el-option v-for="r in resolvableLibrary" :key="r.id" :label="r.id" :value="r.id" />
+    </el-select>
+    <el-button type="primary" @click="loadResolvable">Load</el-button>
+  </el-dialog>
+
+  <el-dialog title="Save Resolvable" :visible.sync="showLoadDialog">
+    <el-input v-model="saveResolvableId" placeholder="Enter an ID for the resolvable" />
+    <el-button type="primary" @click="saveResolvable">Save</el-button>
+  </el-dialog>
 </div>
 </template>
 
 <script>
 import _ from 'lodash';
 import resolver from 'data-resolver';
+import { mapGetters, mapActions } from 'vuex';
 import JsonEditor from '@/components/json-editor';
 import ResolvableEditor from '@/components/resolvable-editor';
 
@@ -45,23 +59,35 @@ export default {
       context: { ..._ },
       resolvable: { resolvableType: '', value: '', args: [] },
       targetPath: '',
-      result: null
+      result: null,
+      showLoadDialog: false,
+      showSaveDialog: false,
+      loadSelectId: null,
+      saveResolvableId: null
     };
   },
 
   computed: {
+    ...mapGetters(['resolvableLibrary']),
     isResolvableValid () {
       return true;
     }
   },
 
   methods: {
+    ...mapActions({ storeSaveResolvable: 'saveResolvable' })
     onJsonLoadSuccess (obj) {
       this.jsonObj = { ...obj };
     },
 
-    onResolvableSave (r) {
+    onResolvableApply (r) {
       this.resolvable = { ...r };
+    },
+
+    onResolvableSave (r) {
+      // show save dialog
+      this.resolvable = { ...r };
+      this.showSaveDialog = true;
     },
 
     runResolve () {
@@ -71,6 +97,16 @@ export default {
       } else {
         this.result = null;
       }
+    },
+
+    loadResolvable () {
+      this.resolvable = { ..._.find(this.resolvableLibrary, { id: this.loadSelectId }).resolvable };
+      this.showLoadDialog = false;
+      this.loadSelectId = null;
+    },
+
+    saveResolvable () {
+      this.storeSaveResolvable({ id: this.saveResolvableId, resolvable: this.resolvable });
     }
   },
 

@@ -51,7 +51,8 @@
       </el-form-item>
     </el-form>
     <div class="main-controls">
-      <el-button type="primary" @click="handleSave">Save</el-button>
+      <el-button @click="handleSave">Save As...</el-button>
+      <el-button type="primary" @click="handleApply">Apply</el-button>
     </div>
   </div>
 </template>
@@ -66,6 +67,10 @@ export default {
     },
     context: {
       type: Object
+    },
+    onApply: {
+      type: Function,
+      default: () => {}
     },
     onSave: {
       type: Function,
@@ -184,11 +189,15 @@ export default {
       this.currentlyEditingPath.pop();
     },
 
-    handleSave () {
+    handleApply () {
       // TODO: validate resolvable
 
       // TODO: tidy up resolvable (e.g. remove empty args)
 
+      this.onApply(this.localResolvable);
+    },
+
+    handleSave () {
       this.onSave(this.localResolvable);
     }
   }
