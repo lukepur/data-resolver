@@ -56,7 +56,32 @@ export default {
 
 function genSample () {
   return {
-    test: 2
+    movies: [
+      {
+        name: 'The Terminator',
+        year: 1984,
+        director: 'James Cameron',
+        actors: ['Arnold Schwarzenegger', 'Linda Hamilton']
+      },
+      {
+        name: 'Snatch',
+        year: 2000,
+        director: 'Guy Ritchie',
+        actors: ['Brad Pitt', 'Jason Statham']
+      },
+      {
+        name: 'Inglorious Basterds',
+        year: 2008,
+        director: 'Quentin Tarantino',
+        actors: ['Brad Pitt', 'Christoph Waltz']
+      },
+      {
+        name: 'American Psycho',
+        year: 2000,
+        director: 'Mary Harron',
+        actors: ['Christian Bale', 'Jared Leto']
+      }
+    ]
   };
 }
 </script>
