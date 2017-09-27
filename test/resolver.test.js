@@ -56,6 +56,11 @@ describe('resolver', () => {
         const result = resolver({resolvableType: 'lookup', value: '$value' }, data, context, ['asset_details', 'assets', '0', 'value']);
         expect(result).to.eql(1000);
       });
+
+      it('should return the root data value when no target path is passed', () => {
+        const result = resolver({resolvableType: 'lookup', value: '$value' }, data, context);
+        expect(result).to.eql(genTestData());
+      });
     });
 
     describe('specific pointers', () => {

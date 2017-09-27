@@ -42,7 +42,7 @@ function resolveString(string, data, context = {}, _targetPath) {
     if (targetPath) {
       return get(data, targetPath);
     }
-    console.warn('$value specified, but no targetPath defined');
+    return data;
   }
   // Root data pointer
   if (string === '$') {
