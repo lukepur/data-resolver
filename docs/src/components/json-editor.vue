@@ -2,10 +2,13 @@
   <div>
     <el-form label-width="170px">
       <el-form-item label="JSON">
-        <el-input type="textarea" v-model="localJson" />
+        <el-input type="textarea" v-model="localJson" :rows="10"/>
       </el-form-item>
       <el-form-item>
-        <el-button @click="attemptJsonLoad">Load</el-button>
+        <div class="controls">
+          <el-button class="load-sample-button" @click="loadSample" type="text">Load Sample</el-button>
+          <el-button @click="attemptJsonLoad" type="primary">Load</el-button>
+        </div>
       </el-form-item>
     </el-form>
   </div>
@@ -37,6 +40,10 @@ export default {
       } catch (e) {
         // handle attempt to load invalid JSON
       }
+    },
+
+    loadSample () {
+      this.localJson = JSON.stringify(genSample(), null, 2);
     }
   },
 
@@ -46,4 +53,21 @@ export default {
     }
   }
 };
+
+function genSample () {
+  return {
+    test: 2
+  };
+}
 </script>
+
+<style scoped>
+.controls {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.load-sample-button {
+  margin-right: 20px;
+}
+</style>

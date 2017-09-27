@@ -196,11 +196,7 @@ export default {
 </script>
 
 <style scoped>
-.resolvable-editor-container {
-  max-width: 920px;
-
-}
-.resolvable-editor-container  .el-select {
+.resolvable-editor-container .el-select {
   width: 100%;
 }
 
