@@ -9,7 +9,7 @@
   
   <h3 class="section-title">Edit Resolvable <el-button type="text" @click="()=>{showLoadDialog = true}">Load Resolvable</el-button></h3>
   <div>
-    <resolvable-editor :context="context" :onApply="onResolvableLoad" :onSave="onResolvableSave" :resolvable="resolvable" />
+    <resolvable-editor :context="context" :onApply="onResolvableApply" :onSave="onResolvableSave" :resolvable="resolvable" />
   </div>
 
   <h3 class="section-title">Target Path</h3>
@@ -36,7 +36,7 @@
     <el-button type="primary" @click="loadResolvable">Load</el-button>
   </el-dialog>
 
-  <el-dialog title="Save Resolvable" :visible.sync="showLoadDialog">
+  <el-dialog title="Save Resolvable" :visible.sync="showSaveDialog">
     <el-input v-model="saveResolvableId" placeholder="Enter an ID for the resolvable" />
     <el-button type="primary" @click="saveResolvable">Save</el-button>
   </el-dialog>
@@ -56,7 +56,7 @@ export default {
   data () {
     return {
       jsonObj: { test: '' },
-      context: { ..._ },
+      context: { ..._, _ },
       resolvable: { resolvableType: '', value: '', args: [] },
       targetPath: '',
       result: null,
@@ -75,7 +75,7 @@ export default {
   },
 
   methods: {
-    ...mapActions({ storeSaveResolvable: 'saveResolvable' })
+    ...mapActions({ storeSaveResolvable: 'saveResolvable' }),
     onJsonLoadSuccess (obj) {
       this.jsonObj = { ...obj };
     },
@@ -107,6 +107,8 @@ export default {
 
     saveResolvable () {
       this.storeSaveResolvable({ id: this.saveResolvableId, resolvable: this.resolvable });
+      this.showSaveDialog = false;
+      this.saveResolvableId = null;
     }
   },
 
