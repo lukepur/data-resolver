@@ -44,6 +44,7 @@ export default {
 
     loadSample () {
       this.localJson = JSON.stringify(genSample(), null, 2);
+      this.attemptJsonLoad();
     }
   },
 
