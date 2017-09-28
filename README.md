@@ -1,6 +1,8 @@
 # data-resolver
 A small module for resolving values, paths (relative and absolute) and arbitrarily complex functions across a data structure and computation context.
 
+A demo app for trying out resolvables can be found on this project's [docs page](https://lukepur.github.io/data-resolver). This demo includes some examples of complex queries using resolvables.
+
 ## Why
 On first inspection, the resolvable concept may seem overly verbose and more complicated than simply programmatically achieving the same outcomes. However the motivation is that once a solid library of context functions is created, then advanced tooling could be used to build arbitrarily complex data transformations or queries at runtime (and without code modifications).
 
