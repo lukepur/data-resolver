@@ -123,6 +123,7 @@ export default {
   watch: {
     resolvable (newVal) {
       this.localResolvable = { ...newVal };
+      this.currentlyEditingPath = [];
     }
   },
 
