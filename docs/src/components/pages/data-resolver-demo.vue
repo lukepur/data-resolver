@@ -2,17 +2,17 @@
 <div>
   <h1 class="main-title">data-resolver Demo</h1>
 
-  <h3 class="section-title">Load JSON</h3>
+  <h2 class="section-title">1. Load JSON</h2>
   <div>
     <json-editor :onLoadSuccess="onJsonLoadSuccess" />
   </div>
   
-  <h3 class="section-title">Edit Resolvable <el-button type="text" @click="()=>{showLoadDialog = true}">Load Resolvable</el-button></h3>
+  <h2 class="section-title">2. Edit Resolvable <el-button type="text" @click="()=>{showLoadDialog = true}">Load Resolvable</el-button></h2>
   <div>
     <resolvable-editor :context="context" :onApply="onResolvableApply" :onSave="onResolvableSave" :resolvable="resolvable" />
   </div>
 
-  <h3 class="section-title">Target Path</h3>
+  <h2 class="section-title">3. Target Path</h2>
   <el-form label-width="170px">
     <el-form-item label="Target Path (optional)">
       <el-input v-model="targetPath" />
@@ -24,7 +24,7 @@
   </div>
 
   <div v-if="result">
-    <h3 class="section-title">Result</h3>
+    <h2 class="section-title">4. Result</h2>
     <pre class="result-panel">{{ JSON.stringify(result, null, 2) }}</pre>
   </div>
 
