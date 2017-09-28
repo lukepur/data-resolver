@@ -239,3 +239,9 @@ const ctx = {
   arrayMax: (array) => { /* return max value in array */}
 };
 ```
+
+## Tips
+
+By allowing a custom context, the customisation of resolvables is practically unlimited. However the real power comes from being able to achieve complex queries from a relatively small set of generic context functions.
+
+For example, the [demo UI](https://lukepur.github.io/data-resolver) achieves fairly complex queries using only the functions exposed by lodash. By utilising the function factory utilites, like `partial`, `overArgs` and the `_` placeholder along with collection transforms like `map` and `filter`, complex queries can be constructed without having to resort to coding specific context functions.
